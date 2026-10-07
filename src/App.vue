@@ -2,7 +2,7 @@
 <blog_dummy>
 
   <div>
-    <p>testing</p>
+    <p>test2</p>
   </div>
 
 </blog_dummy>
