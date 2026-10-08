@@ -125,7 +125,6 @@ body {
   font-size: 0.8rem;
 }
 
-/* Paginação */
 .pagination {
   display: flex;
   justify-content: center;
@@ -147,7 +146,6 @@ body {
   cursor: not-allowed;
 }
 
-/* Busca */
 .search-bar {
   display: flex;
   gap: 0.5rem;
@@ -170,7 +168,6 @@ body {
   cursor: pointer;
 }
 
-/* Modal */
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -202,7 +199,6 @@ body {
   cursor: pointer;
 }
 
-/* Comentários */
 .comment-list ul {
   list-style: none;
   margin-top: 1rem;
@@ -220,7 +216,6 @@ body {
   color: #555;
 }
 
-/* Formulário */
 .new-post {
   max-width: 600px;
   margin: 0 auto;
