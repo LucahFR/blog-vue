@@ -1,46 +1,57 @@
 <template>
-  <div class="comment-list">
+  <div class="comentarios">
     <h4>Comentários ({{ comments.length }})</h4>
-    <div v-if="loading" class="loading">Carregando comentários...</div>
-    <div v-else-if="comments.length === 0" class="empty">Nenhum comentário ainda.</div>
+
+    <p v-if="carregando">Carregando...</p>
+    <p v-else-if="comments.length === 0">Nenhum comentário.</p>
+
     <ul v-else>
-      <li v-for="comment in comments" :key="comment.id" class="comment-item">
-        <div class="comment-header">
-          <strong>{{ comment.user.username }}</strong>
-          <span>❤️ {{ comment.likes }}</span>
+      <li v-for="c in comments" :key="c.id" class="comentario">
+        <div class="comentario-topo">
+          <strong>{{ c.user.username }}</strong>
+          <span>{{ c.likes }} likes</span>
         </div>
-        <p>{{ comment.body }}</p>
+        <p>{{ c.body }}</p>
       </li>
     </ul>
   </div>
 </template>
 
-<script setup>
-import { ref, watch } from 'vue'
-import { fetchCommentsByPostId } from '../services/api'
-
-const props = defineProps({
-  postId: { type: Number, required: true }
-})
-
-const comments = ref([])
-const loading = ref(false)
-
-watch(
-  () => props.postId,
-  async (newId) => {
-    if (!newId) return
-    loading.value = true
-    try {
-      const data = await fetchCommentsByPostId(newId)
-      comments.value = data.comments || []
-    } catch (err) {
-      console.error(err)
-      comments.value = []
-    } finally {
-      loading.value = false
+<script>
+export default {
+  name: 'CommentList',
+  props: {
+    postId: {
+      type: Number,
+      required: true
     }
   },
-  { immediate: true }
-)
+  data() {
+    return {
+      comments: [],
+      carregando: false
+    }
+  },
+  methods: {
+    async carregarComentarios() {
+      if (this.postId < 0) {
+        this.comments = []
+        return
+      }
+      this.carregando = true
+      try {
+        const resposta = await fetch('https://dummyjson.com/comments/post/' + this.postId)
+        const dados = await resposta.json()
+        this.comments = dados.comments
+      } catch (e) {
+        console.log('erro:', e)
+        this.comments = []
+      }
+      this.carregando = false
+    }
+  },
+  mounted() {
+    this.carregarComentarios()
+  }
+}
 </script>

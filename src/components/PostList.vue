@@ -1,112 +1,128 @@
 <template>
-  <div class="post-list">
-    <div class="header-actions">
+  <div>
+    <div class="topo-posts">
       <h2>Posts</h2>
-      <router-link to="/new" class="btn-new">+ Novo Post</router-link>
+      <router-link to="/new" class="btn-novo">+ Novo Post</router-link>
     </div>
 
-    <!-- Busca -->
-    <div class="search-bar">
-      <input
-        v-model="searchQuery"
-        type="text"
-        placeholder="Buscar posts por título..."
-        @keyup.enter="handleSearch"
-      />
-      <button @click="handleSearch">🔍</button>
+    <div class="barra-busca">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8" />
+        <line x1="21" y1="21" x2="16.65" y2="16.65" />
+      </svg>
+      <input v-model="busca" type="text" placeholder="Buscar posts..." @input="filtrar" />
     </div>
 
-    <!-- Estado de carregamento -->
-    <div v-if="loading" class="loading-state">Carregando posts...</div>
+    <p v-if="carregando" class="aviso">Carregando...</p>
+    <p v-else-if="erro" class="aviso">
+      {{ erro }}
+      <button @click="carregarPosts">Tentar novamente</button>
+    </p>
+    <p v-else-if="posts.length === 0" class="aviso">Nenhum post encontrado.</p>
 
-    <!-- Mensagem de erro -->
-    <div v-else-if="error" class="error-state">
-      {{ error }}
-      <button @click="loadPosts">Tentar novamente</button>
-    </div>
-
-    <!-- Lista de posts -->
-    <div v-else class="posts-grid">
+    <div v-else class="grid">
       <PostCard
-        v-for="post in posts"
-        :key="post.id"
-        :post="post"
-        @show-comments="openComments"
+        v-for="p in posts"
+        :key="p.id"
+        :post="p"
+        @ver-comentarios="abrirComentarios"
+        @apagar="apagarPost"
       />
     </div>
 
-    <!-- Paginação -->
     <Pagination
-      :currentPage="currentPage"
-      :totalItems="totalPosts"
-      :itemsPerPage="itemsPerPage"
-      @update:currentPage="changePage"
+      :pagina="pagina"
+      :total="totalPosts"
+      :porPagina="15"
+      @mudar-pagina="mudarPagina"
     />
 
-    <!-- Comentários -->
-    <div v-if="selectedPostId" class="modal-overlay" @click.self="closeComments">
-      <div class="modal-content">
-        <button class="modal-close" @click="closeComments">✕</button>
-        <CommentList :postId="selectedPostId" />
+    <div v-if="postSelecionado !== null" class="modal" @click.self="fecharComentarios">
+      <div class="modal-conteudo">
+        <button class="fechar" @click="fecharComentarios">X</button>
+        <CommentList :postId="postSelecionado" />
       </div>
     </div>
   </div>
 </template>
 
-<script setup>
-import { ref, onMounted, watch } from 'vue'
+<script>
 import PostCard from './PostCard.vue'
 import CommentList from './CommentList.vue'
 import Pagination from './Pagination.vue'
-import { fetchPosts } from '../services/api'
 
-const posts = ref([])
-const loading = ref(false)
-const error = ref('')
-const currentPage = ref(1)
-const totalPosts = ref(0)
-const itemsPerPage = 15
-const searchQuery = ref('')
-const selectedPostId = ref(null)
-
-async function loadPosts() {
-  loading.value = true
-  error.value = ''
-  try {
-    const skip = (currentPage.value - 1) * itemsPerPage
-    const data = await fetchPosts({
-      limit: itemsPerPage,
-      skip,
-      search: searchQuery.value.trim()
-    })
-    posts.value = data.posts || []
-    totalPosts.value = data.total || 0
-  } catch (err) {
-    error.value = err.message || 'Erro desconhecido'
-  } finally {
-    loading.value = false
+export default {
+  name: 'PostList',
+  components: { PostCard, CommentList, Pagination },
+  data() {
+    return {
+      posts: [],
+      todos: [],
+      carregando: false,
+      erro: '',
+      pagina: 1,
+      totalPosts: 0,
+      busca: '',
+      postSelecionado: null,
+      porPagina: 15
+    }
+  },
+  methods: {
+    // busca os posts na api
+    async carregarPosts() {
+      this.carregando = true
+      this.erro = ''
+      try {
+        const resposta = await fetch('https://dummyjson.com/posts?limit=200')
+        const dados = await resposta.json()
+        const meus = this.pegarMeusPosts()
+        this.todos = meus.concat(dados.posts)
+        this.filtrar()
+        console.log('posts carregados:', this.todos.length)
+      } catch (e) {
+        this.erro = 'Erro ao carregar posts'
+        console.log(e)
+      }
+      this.carregando = false
+    },
+    pegarMeusPosts() {
+      var salvos = localStorage.getItem('meus-posts')
+      if (salvos) {
+        return JSON.parse(salvos)
+      }
+      return []
+    },
+    filtrar() {
+      var lista = this.todos
+      if (this.busca) {
+        lista = this.todos.filter(function (p) {
+          return p.title.toLowerCase().includes(this.busca.toLowerCase())
+        }.bind(this))
+      }
+      this.totalPosts = lista.length
+      var inicio = (this.pagina - 1) * this.porPagina
+      this.posts = lista.slice(inicio, inicio + this.porPagina)
+    },
+    mudarPagina(p) {
+      this.pagina = p
+      this.filtrar()
+      window.scrollTo(0, 0)
+    },
+    abrirComentarios(id) {
+      this.postSelecionado = id
+    },
+    fecharComentarios() {
+      this.postSelecionado = null
+    },
+    apagarPost(id) {
+      var lista = this.pegarMeusPosts().filter(p => p.id !== id)
+      localStorage.setItem('meus-posts', JSON.stringify(lista))
+      this.todos = this.todos.filter(p => p.id !== id)
+      this.filtrar()
+    }
+  },
+  mounted() {
+    this.carregarPosts()
   }
 }
-
-function changePage(page) {
-  currentPage.value = page
-  loadPosts()
-}
-
-function handleSearch() {
-  currentPage.value = 1
-  loadPosts()
-}
-
-function openComments(postId) {
-  selectedPostId.value = postId
-}
-
-function closeComments() {
-  selectedPostId.value = null
-}
-
-onMounted(loadPosts)
-
-watch(currentPage, loadPosts)
 </script>
