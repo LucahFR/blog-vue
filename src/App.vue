@@ -167,6 +167,7 @@ body {
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 1.5rem;
   margin-top: 1.5rem;
+  align-items: start;
 }
 
 .card {
@@ -194,13 +195,18 @@ body {
 .card h3 {
   color: var(--texto);
   font-size: 1.05rem;
+  line-height: 1.35;
+  max-height: 2.7em;
+  overflow: hidden;
   word-break: break-word;
 }
 
 .card-corpo {
   color: var(--texto2);
-  flex: 1;
   margin-bottom: 1rem;
+  line-height: 1.5;
+  max-height: 6em;
+  overflow: hidden;
   word-break: break-word;
 }
 
@@ -223,7 +229,6 @@ body {
   color: var(--texto3);
   border-top: 1px solid var(--borda2);
   padding-top: 0.75rem;
-  margin-top: auto;
 }
 
 .info {
@@ -292,7 +297,7 @@ body {
   padding: 0.2rem 0.6rem;
   border-radius: 12px;
   font-size: 0.8rem;
-  max-width: 140px;
+  max-width: 90px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -380,19 +385,95 @@ body {
   justify-content: center;
   align-items: center;
   z-index: 1000;
+  padding: 20px;
 }
 
-.modal-conteudo {
+.modal-post {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
   background: var(--cartao);
   color: var(--texto);
   border: 1px solid var(--borda);
   border-radius: 8px;
-  padding: 2rem;
-  max-width: 600px;
-  width: 90%;
-  max-height: 80vh;
-  overflow-y: auto;
+  width: 100%;
+  max-width: 1000px;
+  height: 85vh;
+  max-height: 700px;
+  overflow: hidden;
   position: relative;
+}
+
+.fechar {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.6rem;
+  background: var(--cartao);
+  border: none;
+  font-size: 1.3rem;
+  cursor: pointer;
+  color: var(--texto2);
+  z-index: 5;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.fechar:hover {
+  background: var(--cartao2);
+  color: var(--texto);
+}
+
+.post-conteudo {
+  padding: 2rem;
+  overflow-y: auto;
+  border-right: 1px solid var(--borda2);
+  min-width: 0;
+}
+
+.post-conteudo h3 {
+  color: var(--texto);
+  font-size: 1.3rem;
+  margin-bottom: 1rem;
+  padding-right: 40px;
+}
+
+.post-info {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  font-size: 0.9rem;
+  color: var(--texto3);
+  margin-bottom: 1.2rem;
+  padding-bottom: 0.8rem;
+  border-bottom: 1px solid var(--borda2);
+}
+
+.post-texto {
+  color: var(--texto2);
+  line-height: 1.7;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.comentarios-lado {
+  padding: 1.5rem;
+  overflow-y: auto;
+  min-width: 0;
+}
+
+@media (max-width: 700px) {
+  .modal-post {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr 1fr;
+    height: 90vh;
+  }
+  .post-conteudo {
+    border-right: none;
+    border-bottom: 1px solid var(--borda2);
+  }
 }
 
 .fechar {
@@ -436,6 +517,26 @@ body {
   color: var(--texto);
 }
 
+.card-imagem {
+  width: 100%;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 6px;
+  margin: 0.5rem 0 1rem 0;
+  display: block;
+  background: var(--cartao2);
+}
+
+.post-imagem {
+  width: 100%;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+  display: block;
+  background: var(--cartao2);
+}
+
 .campo input,
 .campo textarea {
   width: 100%;
@@ -446,6 +547,9 @@ body {
   border-radius: 6px;
   font-family: inherit;
   font-size: 0.95rem;
+  resize: vertical;
+  min-height: 50px;
+  max-height: 400px;
 }
 
 .campo input::placeholder,

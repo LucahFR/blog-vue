@@ -25,7 +25,8 @@
         v-for="p in posts"
         :key="p.id"
         :post="p"
-        @ver-comentarios="abrirComentarios"
+        :usuarios="usuarios"
+        @abrir-post="abrirPost"
         @apagar="apagarPost"
       />
     </div>
@@ -37,10 +38,35 @@
       @mudar-pagina="mudarPagina"
     />
 
-    <div v-if="postSelecionado !== null" class="modal" @click.self="fecharComentarios">
-      <div class="modal-conteudo">
-        <button class="fechar" @click="fecharComentarios">X</button>
-        <CommentList :postId="postSelecionado" />
+    <div v-if="postSelecionado" class="modal" @click.self="fecharPost">
+      <div class="modal-post">
+        <button class="fechar" @click="fecharPost">X</button>
+
+        <div class="post-conteudo">
+          <h3>{{ postSelecionado.title }}</h3>
+
+          <img
+            class="post-imagem"
+            :src="urlImagem(postSelecionado, 600, 300)"
+            :alt="postSelecionado.title"
+          >
+
+          <div class="post-info">
+            <span>👤 {{ nomeAutor(postSelecionado.userId) }}</span>
+            <span>❤️ {{ postSelecionado.reactions.likes }}</span>
+            <span>👎 {{ postSelecionado.reactions.dislikes }}</span>
+          </div>
+
+          <p class="post-texto">{{ postSelecionado.body }}</p>
+
+          <div class="tags" v-if="postSelecionado.tags && postSelecionado.tags.length">
+            <span v-for="t in postSelecionado.tags" :key="t" class="tag">#{{ t }}</span>
+          </div>
+        </div>
+
+        <div class="comentarios-lado">
+          <CommentList :postId="postSelecionado.id" />
+        </div>
       </div>
     </div>
   </div>
@@ -58,6 +84,7 @@ export default {
     return {
       posts: [],
       todos: [],
+      usuarios: [],
       carregando: false,
       erro: '',
       pagina: 1,
@@ -68,15 +95,19 @@ export default {
     }
   },
   methods: {
-    // busca os posts na api
     async carregarPosts() {
       this.carregando = true
       this.erro = ''
       try {
-        const resposta = await fetch('https://dummyjson.com/posts?limit=200')
-        const dados = await resposta.json()
+        const respPosts = await fetch('https://dummyjson.com/posts?limit=200')
+        const dadosPosts = await respPosts.json()
+
+        const respUsuarios = await fetch('https://dummyjson.com/users?limit=200')
+        const dadosUsuarios = await respUsuarios.json()
+        this.usuarios = dadosUsuarios.users
+
         const meus = this.pegarMeusPosts()
-        this.todos = meus.concat(dados.posts)
+        this.todos = meus.concat(dadosPosts.posts)
         this.filtrar()
         console.log('posts carregados:', this.todos.length)
       } catch (e) {
@@ -108,17 +139,38 @@ export default {
       this.filtrar()
       window.scrollTo(0, 0)
     },
-    abrirComentarios(id) {
-      this.postSelecionado = id
+    abrirPost(post) {
+      this.postSelecionado = post
     },
-    fecharComentarios() {
+    fecharPost() {
       this.postSelecionado = null
     },
     apagarPost(id) {
       var lista = this.pegarMeusPosts().filter(p => p.id !== id)
       localStorage.setItem('meus-posts', JSON.stringify(lista))
       this.todos = this.todos.filter(p => p.id !== id)
+      if (this.postSelecionado && this.postSelecionado.id === id) {
+        this.postSelecionado = null
+      }
       this.filtrar()
+    },
+    nomeAutor(userId) {
+      if (this.usuarios.length === 0) {
+        return 'Anônimo'
+      }
+      var i = Math.abs(userId) % this.usuarios.length
+      var u = this.usuarios[i]
+      return u.firstName + ' ' + u.lastName
+    },
+    urlImagem(post, largura, altura) {
+      var cores = ['1e293b', '334155', '1e3a8a', '3b0764', '14532d', '7c2d12']
+      var cor = cores[Math.abs(post.id) % cores.length]
+      var texto = post.title
+      if (texto.length > 40) {
+        texto = texto.substring(0, 40)
+      }
+      texto = encodeURIComponent(texto)
+      return 'https://dummyjson.com/image/' + largura + 'x' + altura + '/' + cor + '/cbd5e1?text=' + texto + '&fontSize=28'
     }
   },
   mounted() {

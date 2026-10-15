@@ -4,19 +4,15 @@
     <form @submit.prevent="criarPost">
       <div class="campo">
         <label for="titulo">Título</label>
-        <input id="titulo" v-model="titulo" type="text" required />
+        <input id="titulo" v-model="titulo" type="text" required maxlength="100" />
       </div>
       <div class="campo">
         <label for="corpo">Conteúdo</label>
-        <textarea id="corpo" v-model="corpo" rows="6" required></textarea>
+        <textarea id="corpo" v-model="corpo" rows="6" required maxlength="500"></textarea>
       </div>
       <div class="campo">
         <label for="tags">Tags</label>
-        <input id="tags" v-model="tags" type="text" placeholder="vue, javascript, blog" />
-      </div>
-      <div class="campo">
-        <label for="autor">ID do Autor</label>
-        <input id="autor" v-model.number="autor" type="number" min="1" required />
+        <input id="tags" v-model="tags" type="text" placeholder="vue, javascript, blog" maxlength="80" />
       </div>
 
       <p v-if="mensagemSucesso" class="mensagem-sucesso">{{ mensagemSucesso }}</p>
@@ -40,7 +36,6 @@ export default {
       titulo: '',
       corpo: '',
       tags: '',
-      autor: 1,
       enviando: false,
       mensagemSucesso: '',
       mensagemErro: ''
@@ -56,10 +51,13 @@ export default {
       var tagsLimpa = []
       for (var i = 0; i < listaTags.length; i++) {
         var t = listaTags[i].trim()
-        if (t.length > 0) {
-          tagsLimpa.push(t)
+        if (t.length > 0 && tagsLimpa.length < 5) {
+          tagsLimpa.push(t.substring(0, 20))
         }
       }
+
+      //coloca id aleatorio quando cria post (teste pessoas)
+      var idAleatorio = Math.floor(Math.random() * 30) + 1
 
       try {
         const resposta = await fetch('https://dummyjson.com/posts/add', {
@@ -68,7 +66,7 @@ export default {
           body: JSON.stringify({
             title: this.titulo,
             body: this.corpo,
-            userId: this.autor,
+            userId: idAleatorio,
             tags: tagsLimpa
           })
         })
@@ -78,7 +76,7 @@ export default {
           id: -Date.now(),
           title: this.titulo,
           body: this.corpo,
-          userId: this.autor,
+          userId: idAleatorio,
           tags: tagsLimpa,
           reactions: { likes: 0, dislikes: 0 },
           isLocal: true
