@@ -7,7 +7,7 @@
 
     <img
       class="card-imagem"
-      :src="urlImagem(post, 600, 500)"
+      :src="urlImagem(post, 600, 600)"
       :alt="post.title"
       loading="lazy"
     >

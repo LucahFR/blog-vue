@@ -146,9 +146,11 @@ export default {
       this.postSelecionado = null
     },
     apagarPost(id) {
-      var lista = this.pegarMeusPosts().filter(p => p.id !== id)
-      localStorage.setItem('meus-posts', JSON.stringify(lista))
       this.todos = this.todos.filter(p => p.id !== id)
+
+      var locais = this.todos.filter(p => p.isLocal)
+      localStorage.setItem('meus-posts', JSON.stringify(locais))
+
       if (this.postSelecionado && this.postSelecionado.id === id) {
         this.postSelecionado = null
       }
